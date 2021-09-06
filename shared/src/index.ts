@@ -1,1 +1,2 @@
-export const x = 10;
+export * from './Board';
+export * from './types';

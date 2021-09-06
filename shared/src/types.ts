@@ -1,3 +1,4 @@
+import { ListenOptions } from "net"
 
 export enum LState {
   None = 0,
@@ -19,9 +20,10 @@ export type BoardState = {
     clue: number,
     satisfiable: boolean,
     adj: boolean[]
-  }[][];
-  lines: {
-    orientation: LState;
-    isLoop: boolean;
   }[][],
+  lines: {
+    orientation: LState,
+    isLoop: boolean
+  }[][],
+  issues: number
 }

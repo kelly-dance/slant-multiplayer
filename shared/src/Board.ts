@@ -29,10 +29,10 @@ export class Board {
         this.setSpec(spec);
     }
 
+    //determine how specifically to handle Boardstate objects (copy or just reference) leaning towards reference
     public setBoard(up: BoardState): boolean {
         this.initBoard(up.lines.length, up.lines[0].length);
-        this.state.lines = up.lines;
-        this.state.clues = up.clues;
+        this.state = up;
         this.issueCheck();
         return false;
     }
@@ -81,7 +81,8 @@ export class Board {
                 lines: Array.from({length: height}, () => Array.from({length: width}, () =>({
                     orientation: LState.None,
                     isLoop: false
-                })))
+                }))),
+                issues: width * height
             };
             this.solu = Array.from({length: height}, () => new Array(width));
             this.flatlen = (width + 1) * (height + 1);
@@ -100,46 +101,42 @@ export class Board {
         if (up.r >= this.state.height || up.c >= this.state.width) {
             return false;
         }
+        if(this.state.lines[up.r][up.c].orientation == up.orientation) return true;
+        
+        if(up.orientation == LState.None) {
+            this.state.issues += this.state.lines[up.r][up.c].isLoop ? 0 : 1;
+            this.state.lines[up.r][up.c].isLoop = false;
+        }
+        this.state.issues += this.state.lines[up.r][up.c].orientation == LState.None ? -1 : 0;
+
         this.state.lines[up.r][up.c].orientation = up.orientation;
         // update adjacency array
         this.state.clues[up.r][up.c].adj[3] = up.orientation == LState.Left;
         this.state.clues[up.r][up.c + 1].adj[2] = up.orientation == LState.Right;
         this.state.clues[up.r + 1][up.c].adj[1] = up.orientation == LState.Right;
         this.state.clues[up.r + 1][up.c + 1].adj[0] = up.orientation == LState.Left;
-        //const flat = (up.r * (this.state.width + 1)) + up.c;
-        // if (up.orientation == LState.Left) {
-        //     this.state.clues[up.r][up.c].adj[3] = true;
-        //     this.state.clues[up.r][up.c + 1].adj[2] = false;
-        //     this.state.clues[up.r + 1][up.c].adj[1] = false;
-        //     this.state.clues[up.r + 1][up.c + 1].adj[0] = true;
-        // } else if (up.orientation == LState.Right) {
-        //     this.state.clues[up.r][up.c].adj[3] = false;
-        //     this.state.clues[up.r][up.c + 1].adj[2] = true;
-        //     this.state.clues[up.r + 1][up.c].adj[1] = true;
-        //     this.state.clues[up.r + 1][up.c + 1].adj[0] = false;
-        // } else {
-        //     this.state.clues[up.r][up.c].adj[3] = false;
-        //     this.state.clues[up.r][up.c + 1].adj[2] = false;
-        //     this.state.clues[up.r + 1][up.c].adj[1] = false;
-        //     this.state.clues[up.r + 1][up.c + 1].adj[0] = false;
-        // }
-        // TODO: run issue checker
         this.issueUpdate(up);
         return true;
     }
     
     private issueCheck(): boolean {
+        for(let r = 0; r < this.state.height + 1; r++) {
+            for(let c = 0; c < this.state.width + 1; c++) {
+                this.clueIsSatisfiable(r, c);
+            }
+        }
         this.loopCheck();
         return false;
     }
 
     private issueUpdate(up: PartialUpdate): boolean {
-        this.state.clues[up.r][up.c].satisfiable = this.clueIsSatisfiable(up.r, up.c);
-        this.state.clues[up.r][up.c + 1].satisfiable = this.clueIsSatisfiable(up.r, up.c + 1);
-        this.state.clues[up.r + 1][up.c].satisfiable = this.clueIsSatisfiable(up.r + 1, up.c);
-        this.state.clues[up.r + 1][up.c + 1].satisfiable = this.clueIsSatisfiable(up.r + 1, up.c + 1);
-
-        this.loopCheck();
+        
+        this.clueIsSatisfiable(up.r, up.c);
+        this.clueIsSatisfiable(up.r, up.c + 1);
+        this.clueIsSatisfiable(up.r + 1, up.c);
+        this.clueIsSatisfiable(up.r + 1, up.c + 1);
+        this.loopUpdate(up);
+        console.log(this.state.issues);
         return false;
     }
 
@@ -160,11 +157,9 @@ export class Board {
         this.tin.fill(-1);
         this.low.fill(-1);
         this.timer = 0;
-        for (let i = 0; i < this.flatlen; i++) {
-            if (!this.visited[i]) {
-                this.bridge_dfs(i, -1);
-            }
-        }
+        const flat = (up.r * (this.state.width + 1)) + up.c;
+        this.bridge_dfs(flat, -1);
+        this.bridge_dfs(flat + 1, -1);
     }
 
     private bridge_dfs(v: number, p: number): void {
@@ -177,17 +172,22 @@ export class Board {
                 if (to == p){
                     continue;
                 }
+                const r = Math.floor(Math.min(v/(this.state.width+1), to/(this.state.width+1)));
+                const c = Math.min(v%(this.state.width+1), to%(this.state.width+1));
+
+                //if was correct line add one to issues
+                this.state.issues += this.state.lines[r][c].isLoop ? 0 : 1;
                 if (this.visited[to]) {
                     this.low[v] = Math.min(this.low[v], this.tin[to]);
-                    this.state.lines[Math.floor(Math.min(v/(this.state.width+1), to/(this.state.width+1)))]
-                            [Math.min(v%(this.state.width+1), to%(this.state.width+1))].isLoop 
-                    = true;
+                    this.state.lines[r][c].isLoop = true;
+                    //following is always 0 anyways
+                    //this.state.issues += this.state.lines[r][c].isLoop ? 0: -1;
                 }else{
                     this.bridge_dfs(to, v);
                     this.low[v] = Math.min(this.low[v], this.low[to]);
-                    this.state.lines[Math.floor(Math.min(v/(this.state.width+1), to/(this.state.width+1)))]
-                            [Math.min(v%(this.state.width+1), to%(this.state.width+1))].isLoop
-                    = (this.low[to] <= this.tin[v]);
+                    //if was correct add one to issues
+                    this.state.lines[r][c].isLoop = (this.low[to] <= this.tin[v]);
+                    this.state.issues += this.state.lines[r][c].isLoop ? 0 : -1;
                 }
             }
         }
@@ -210,7 +210,7 @@ export class Board {
         return this.state.height;
     }
 
-    public clueIsSatisfiable(r : number, c: number): boolean {
+    private clueIsSatisfiable(r : number, c: number): boolean {
         if(this.state.clues[r][c].clue == -1) return true;
         let count = 0;
         let maxcount = 0;
@@ -246,17 +246,21 @@ export class Board {
                 maxcount++;
             }
         }
-        return count <= this.state.clues[r][c].clue && maxcount >= this.state.clues[r][c].clue;
+        this.state.issues += this.state.clues[r][c].satisfiable ? 0: -1;
+        const ret = count <= this.state.clues[r][c].clue && maxcount >= this.state.clues[r][c].clue;
+        this.state.clues[r][c].satisfiable = ret;
+        this.state.issues += ret ? 0: 1;
+        return ret;
     }
 
     //TODO: Setup DSF data structure
     private generate_solu(width: number, height: number, 
         solu: LState[][] = Array.from({length: height}, () => new Array(width).fill(LState.None))): 
         LState[][] {
-
+        let count = 0;
         let sets = Array.from({length: height + 1}, (_,r) => 
-            Array.from({length: height + 1}, (_,c) =>
-                r*(width + 1) + c));
+            Array.from({length: width + 1}, (_,c) =>
+                count++));
         let us: boolean;
         let ds: boolean;
 

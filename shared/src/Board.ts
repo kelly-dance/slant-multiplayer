@@ -1,6 +1,6 @@
 import { LState, PartialUpdate, BoardState } from './types';
 
-const DEFAULT_SPECIFIC = "12x10:d1b1b1c11a113c14c1c11f321c21a2c1a2a3a2a211b12b11a3a2a1c3a132a123b1a3e33b1221a2a22a21a1222a1a1a2b0a11a1c1a1b";
+const DEFAULT_SPECIFIC = "36x24:a1b1b1r1l12a31b1a2122a13a2a223a2b13a3a3a3a1b231232c2a132a11b3b2a11a3a3b3a12b31a1a3a2a2c12b2d2a3f2b213c12a3112a1123a3b212a3c2b2a1c12a3a11a3d311a23a13d1a12b2b3a2c32a1122b1b1c1a21a313a2a231a1311b2b23a1a11b11e1f2a2b222b2a2c3a22c2b11b3222b2a3c2b32g3b2a223b2a2223a2a3a3b11c3a122a31a2b2b2a32a2a2b21a2a3i331a213b22c2b3a3a3d11b21a2b32b2b13122b2a3b322b22a2c1a2b3a321b32b32a32a3a2d3232a1a113a3e1a32d32h2a222a3a1c3a2b22e13c22222a1b2a22a11b2232b1a3b3b12322a221b22c2b3d21a311c3a2a21a3a2221b1212a3c3b2b221b323b3c2a22c2a21a22c1a121f2c3a1a222e2d313a2a1a13a12232b122a322c1a23221a221a1a11e1c3a3a1c2d23a2a321h1133a22a22b13c2a21b3212a2a2a212b1b23b12a2a2a1a132a12a2322a32a3a3a1b11b1i1a111a1d1d1b1a";
 
 export class Board {
 
@@ -94,7 +94,7 @@ export class Board {
         return false;
     }
 
-    public alter(up: PartialUpdate): boolean{
+    public alter(up: PartialUpdate): boolean {
         if (up == null) {
             return true;
         }

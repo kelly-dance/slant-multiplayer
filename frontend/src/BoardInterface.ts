@@ -1,4 +1,5 @@
 import { Board, BoardState, PartialUpdate } from 'slant';
+import * as Socketio from 'socket.io-client';
 
 export abstract class BoardInterface {
   board: Board;
@@ -40,6 +41,22 @@ export abstract class BoardInterface {
 }
 
 export class SinglePlayerBoardInterface extends BoardInterface {
+  update(up: PartialUpdate): void {
+    this.board.alter(up);
+    this.emitUpdate(this.board.state);
+  }
+
+  setSpec(spec: string): void {
+    this.board.setSpec(spec);
+    this.emitUpdate(this.board.state);
+  }
+}
+
+export class MultiplayerBoardInterface extends BoardInterface {
+  constructor(private con: Socketio.Socket) {
+    super();
+  }
+
   update(up: PartialUpdate): void {
     this.board.alter(up);
     this.emitUpdate(this.board.state);

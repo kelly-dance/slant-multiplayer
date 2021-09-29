@@ -18,8 +18,10 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
+    "@types/socket.io": "^3.0.2",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "slant": "file:../shared"
+    "slant": "file:../shared",
+    "socket.io": "^4.2.0"
   }
 }

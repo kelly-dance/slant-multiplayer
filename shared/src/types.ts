@@ -1,5 +1,3 @@
-import { ListenOptions } from "net"
-
 export enum LState {
   None = 0,
   Left = 1,
@@ -27,3 +25,16 @@ export type BoardState = {
   }[][],
   issues: number
 }
+
+export type ServerBoardState = {
+  clues: number[][],
+  lines: {
+    orientation: LState,
+    time: number,
+  }[][],
+}
+
+export type Updates = {
+  update: PartialUpdate,
+  prior: LState,
+}[]

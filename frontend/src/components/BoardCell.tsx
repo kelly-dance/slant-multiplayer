@@ -7,7 +7,8 @@ const BoardCell = ({ manager, boxSize, row, col }: { manager: BoardInterface, bo
 
   useEffect(() => {
     const listener = (board: BoardState) => {
-      const newBox = board.lines[row][col];
+      const newBox = board.lines[row]?.[col];
+      if(!newBox) return;
       if(newBox.isLoop !== box.isLoop || newBox.orientation !== box.orientation) {
         setBox({...newBox});
       }

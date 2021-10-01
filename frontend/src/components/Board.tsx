@@ -12,13 +12,12 @@ const makeSize = (manager: BoardInterface) => {
 
 const Board = ({ manager }: { manager: BoardInterface }) => {
   const [boxSize, setBoxSize] = useState(makeSize(manager));
-  const hintSize = boxSize / 2;
 
   const [board, setBoard] = useState<BoardState>(manager.getBoard());
 
   useEffect(() => {
     const listener = (newBoard: BoardState) => {
-      if(Object.entries(newBoard).some(([key, value]) => value !== board[key as keyof BoardState])) {
+      if(newBoard.width !== board.width || newBoard.height !== board.height) {
         setBoard({...newBoard});
         console.log(newBoard)
       }
@@ -36,7 +35,20 @@ const Board = ({ manager }: { manager: BoardInterface }) => {
 
   return (
     <div style={{padding: `${pad}px`}}>
-      <div style={{border: '1px solid darkgrey', position:'relative'}}>
+      <div style={{border: '1px solid darkgrey'}}>
+        {board.clues.flatMap((row, i) => {
+          return row.map((_, j) => {
+            return (
+              <BoardClue
+                key={`${i}-${j}`}
+                boxSize={boxSize}
+                row={i}
+                col={j}
+                manager={manager}
+              />
+            )
+          });
+        })}
         {board.lines.map((row, i) => {
           return (
             <div key={i} style={{whiteSpace:'nowrap'}}>
@@ -49,22 +61,6 @@ const Board = ({ manager }: { manager: BoardInterface }) => {
               })}
             </div>
           );
-        })}
-        {board.clues.flatMap((row, i) => {
-          return row.map(({ clue, satisfiable }, j) => {
-            if(clue === -1) return '';
-            return (
-              <BoardClue
-                key={`${i}-${j}`}
-                boxSize={boxSize}
-                row={i}
-                col={j}
-                manager={manager}
-                top={`${-hintSize/2 + boxSize * i}px`}
-                left={`${-hintSize/2 + boxSize * j}px`}
-              />
-            )
-          });
         })}
       </div>
     </div>

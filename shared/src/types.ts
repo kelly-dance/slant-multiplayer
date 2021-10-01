@@ -10,31 +10,45 @@ export type PartialUpdate = {
   c: number;
 }
 
+export type BoardClueState = {
+  clue: number,
+  satisfiable: boolean,
+  adj: boolean[]
+}
+
+export type BoardLineState = {
+  orientation: LState,
+  isLoop: boolean
+}
+
 export type BoardState = {
   spec?: string,
   width: number,
   height: number,
-  clues: {
-    clue: number,
-    satisfiable: boolean,
-    adj: boolean[]
-  }[][],
-  lines: {
-    orientation: LState,
-    isLoop: boolean
-  }[][],
+  clues: BoardClueState[][],
+  lines: BoardLineState[][],
   issues: number
+}
+
+export type SingleplayerLogEntry = {
+  update: PartialUpdate,
+  prior: LState,
+}
+
+
+//Multiplayer Types
+type ServerPartialUpdate = {
+  partial: PartialUpdate,
+  time: number,
 }
 
 export type ServerBoardState = {
   clues: number[][],
-  lines: {
-    orientation: LState,
-    time: number,
-  }[][],
+  lines: LState[][],
 }
 
-export type Updates = {
-  update: PartialUpdate,
+export type MultipayeLogEntry = {
+  update: ServerPartialUpdate,
   prior: LState,
-}[]
+}
+

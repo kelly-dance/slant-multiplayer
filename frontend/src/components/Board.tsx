@@ -1,40 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { LState, BoardState } from 'slant';
+import { BoardState } from 'slant';
 import { BoardInterface } from '../BoardInterface';
+import BoardCell from './BoardCell';
+import BoardClue from './BoardClue';
+
+const pad = 50;
 
 const makeSize = (manager: BoardInterface) => {
-  return Math.min((window.innerWidth - 80) / manager.width, (window.innerHeight - 80) / manager.height);
+  return Math.round(Math.min((window.innerWidth - pad * 2) / manager.width, (window.innerHeight - pad * 2) / manager.height));
 }
 
 const Board = ({ manager }: { manager: BoardInterface }) => {
   const [boxSize, setBoxSize] = useState(makeSize(manager));
   const hintSize = boxSize / 2;
 
-  const hintStyle: React.CSSProperties = {
-    position: 'absolute',
-    width: `${hintSize}px`,
-    height: `${hintSize}px`,
-    border: '1px solid black',
-    borderRadius: '50%',
-    textAlign: 'center',
-    lineHeight: `${hintSize}px`,
-    backgroundColor: 'white',
-    fontSize: `${hintSize/1.1}px`,
-    fontWeight: 'bold',
-    fontFamily: 'Arial, sans-serif',
-    zIndex: 100,
-    userSelect: 'none',
-    pointerEvents: 'none',
-  }
-
   const [board, setBoard] = useState<BoardState>(manager.getBoard());
 
-  useEffect (() => {
-    manager.onUpdate(board => {
-      setBoard({...board});
-      console.log(board)
-    })
-  }, [manager]);
+  useEffect(() => {
+    const listener = (newBoard: BoardState) => {
+      if(Object.entries(newBoard).some(([key, value]) => value !== board[key as keyof BoardState])) {
+        setBoard({...newBoard});
+        console.log(newBoard)
+      }
+    }
+    manager.on('update', listener)
+    return () => void manager.removeListener('update', listener);
+  }, [manager, board]);
 
   useEffect (() => {
     const handle = () => setBoxSize(makeSize(manager));
@@ -44,69 +35,39 @@ const Board = ({ manager }: { manager: BoardInterface }) => {
   }, [manager, board]);
 
   return (
-    <div style={{margin: '50px', position: 'relative'}}>
-      <div style={{display: 'table', border: '1px solid darkgrey', width: `${boxSize * board.lines[0].length}px`}}>
+    <div style={{padding: `${pad}px`}}>
+      <div style={{border: '1px solid darkgrey', position:'relative'}}>
         {board.lines.map((row, i) => {
           return (
-            <div key={i} style={{height: `${boxSize}px`, display: 'table-row'}}>
+            <div key={i} style={{whiteSpace:'nowrap'}}>
               {row.map((_, j) => {
-                const box = board.lines[i][j];
                 return (
-                  <div
-                    key={j}
-                    style={{width: `${boxSize}px`, display: 'table-cell', position: 'relative'}}
-                    onContextMenu={e => e.preventDefault()}
-                    onMouseDown={e => {
-                      console.log(e.button);
-                      if(e.button === 0) {
-                        manager.update({
-                          orientation: (box.orientation + 1) % 3,
-                          r: i,
-                          c: j,
-                        });
-                      }else if(e.button === 2) {
-                        manager.update({
-                          orientation: (box.orientation + 2) % 3,
-                          r: i,
-                          c: j,
-                        });
-                      }
-                    }}
-                  >
-                    <div style={{width: `100%`, height: `100%`, position: 'absolute', border: '1px solid darkgrey'}} />
-                    {
-                      box.orientation === LState.None ? '' :
-                      <svg width={boxSize} height={boxSize} style={{position: 'absolute', top: '0', left: '0'}}>
-                        <line x1="0" y1={box.orientation === LState.Left ? 0 : boxSize} x2={boxSize} y2={box.orientation === LState.Left ? boxSize : 0} stroke={box.isLoop ? 'red' : 'black'} strokeWidth="3" />
-                      </svg>
-                    }
+                  <div key={j} style={{display:'inline-block', verticalAlign:'top'}}>
+                    <BoardCell boxSize={boxSize} manager={manager} row={i} col={j} />
                   </div>
                 );
               })}
             </div>
           );
         })}
-      </div>
-      <div>
         {board.clues.flatMap((row, i) => {
           return row.map(({ clue, satisfiable }, j) => {
             if(clue === -1) return '';
             return (
-              <div
-                key={`${i},${j}`}
-                style={{
-                ...hintStyle,
-                top: `${-hintSize/2 + boxSize * i}px`,
-                left: `${-hintSize/2 + boxSize * j}px`,
-                color: satisfiable ? 'black' : 'red',
-                }}
-              >{clue}</div>
+              <BoardClue
+                key={`${i}-${j}`}
+                boxSize={boxSize}
+                row={i}
+                col={j}
+                manager={manager}
+                top={`${-hintSize/2 + boxSize * i}px`}
+                left={`${-hintSize/2 + boxSize * j}px`}
+              />
             )
           });
         })}
       </div>
     </div>
-    
   );
 }
 

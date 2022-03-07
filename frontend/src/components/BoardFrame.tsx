@@ -17,7 +17,7 @@ const BoardFrame = ({ children }: { children: React.ReactChild }) => {
       }}
     >
       {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
-        <React.Fragment>
+        <>
           <div className="tools">
             <button onClick={() => zoomIn()} >+</button>
             <button onClick={() => zoomOut()}>-</button>
@@ -28,7 +28,7 @@ const BoardFrame = ({ children }: { children: React.ReactChild }) => {
               {children}  
             </TransformComponent>
           </div>
-        </React.Fragment>
+        </>
       )}
     </TransformWrapper>
     

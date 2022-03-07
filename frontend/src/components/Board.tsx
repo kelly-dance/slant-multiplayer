@@ -33,9 +33,19 @@ const Board = ({ manager }: { manager: BoardInterface }) => {
     return () => window.removeEventListener('resize', handle);
   }, [manager, board]);
 
+  useEffect(() => {
+    document.onkeydown = e => {
+      if (e.key.toLowerCase() === 'z' && e.ctrlKey) {
+        if(e.shiftKey) manager.redo();
+        else manager.undo();
+      }
+      
+    }
+  }, [manager]);
+
   return (
-    <div style={{padding: `${pad}px`}}>
-      <div style={{border: '1px solid darkgrey'}}>
+    <div style={{ padding: `${pad}px` }} >
+      <div style={{ border: '1px solid darkgrey' }} >
         {board.clues.flatMap((row, i) => {
           return row.map((_, j) => {
             return (

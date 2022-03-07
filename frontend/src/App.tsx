@@ -8,14 +8,13 @@ import SpecLoader from './components/SpecLoader';
 function App() {
   const manager = new SinglePlayerBoardInterface();
   
-
   return (
     <>
       <SpecLoader manager={manager} />
       <br/>
-      <button onClick={()=>manager.undo()}>UNDO</button>
+      <button onClick={() => manager.undo()}>UNDO</button>
       <br/>
-      <button onClick={()=>manager.redo()}>REDO</button>
+      <button onClick={() => manager.redo()}>REDO</button>
       <br/>
       <BoardFrame>
         <Board manager={manager} />
